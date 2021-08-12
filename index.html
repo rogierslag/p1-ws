@@ -1,0 +1,123 @@
+<html>
+<head>
+	<title>Power</title>
+	<meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
+	<script>
+		function getTotalNumberOfWatts(input) {
+			if (!input) {
+				return 0;
+			}
+			return Object.values(input)
+				.filter(({unit}) => unit !== null)
+				.map(({reading}) => reading * 1000)
+				.reduce((l, r) => l + r, 0);
+		}
+
+		const ws = new WebSocket('%WSS_URL%');
+		let lastMeasurement;
+		ws.onmessage = ({data}) => {
+			const parsed = JSON.parse(data);
+			if (parsed.connected) {
+				// No need to handle this
+				console.log('Connected');
+				return;
+			}
+			const ePositive = document.getElementById('positive');
+			const eNegative = document.getElementById('negative');
+			const positive = getTotalNumberOfWatts(parsed.positive);
+			const negative = getTotalNumberOfWatts(parsed.negative);
+			ePositive.innerHTML = positive;
+			eNegative.innerHTML = negative;
+			if (lastMeasurement) {
+				if (lastMeasurement.positive > positive) {
+					// Using less energy than before
+					ePositive.parentElement.style.color = 'green';
+				} else if (lastMeasurement.positive === positive) {
+					// Using same amount of energy as before
+					ePositive.parentElement.style.color = 'black';
+				} else {
+					// Using more energy than before
+					ePositive.parentElement.style.color = 'red';
+				}
+
+				if (lastMeasurement.negative > negative) {
+					// Giving less energy than before
+					eNegative.parentElement.style.color = 'red';
+				} else if (lastMeasurement.negative === negative) {
+					// Giving same amount of energy as before
+					eNegative.parentElement.style.color = 'black';
+				} else {
+					// Giving more energy than before
+					eNegative.parentElement.style.color = 'green';
+				}
+			}
+			lastMeasurement = {
+				positive,
+				negative,
+			};
+		}
+	</script>
+	<style>
+			body {
+				margin: 18px;
+				max-width: 360px;
+				font-family: 'Open Sans', sans-serif;
+			}
+
+			h1 {
+				text-align: center;
+			}
+
+			.usages {
+				display: flex;
+				align-items: center;
+				flex-direction: column;
+			}
+
+			.value {
+				flex-grow: 1;
+				font-size: 48px;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				margin-bottom: 18px;
+				background-color: #DBDBDB;
+				padding: 24px;
+				border-radius: 4px;
+			}
+
+			.header {
+				font-size: 16px;
+			}
+
+			.positive {
+
+			}
+
+			.negative {
+
+			}
+	</style>
+</head>
+<body>
+
+<h1>Current power usage</H1>
+<div class="usages">
+	<p class="value positive">
+		<span class="header">Consuming</span>
+		<span>
+			<span id="positive">-</span>W
+		</span>
+	</p>
+	<p class="value negative">
+		<span class="header">Generating</span>
+		<span>
+			<span id="negative">-</span>W
+		</span>
+	</p>
+</div>
+</body>
+</html>
