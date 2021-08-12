@@ -80,6 +80,10 @@
 			document.getElementById('connectionStatus').innerText = getReadableReadyState();
 		}
 
+		function reconnect() {
+			window.location.href = window.location.href + '';
+		}
+
 		ws.addEventListener('open', updateConnectionStatus);
 		ws.addEventListener('message', updateConnectionStatus);
 		ws.addEventListener('error', updateConnectionStatus);
@@ -90,7 +94,7 @@
 			if (document.visibilityState === 'visible') {
 				console.log('Visibility check')
 				if (ws.readyState !== WebSocket.OPEN) {
-					window.location.reload();
+					reconnect();
 				}
 			}
 		});
@@ -147,7 +151,7 @@
 <body>
 
 <h1>Current power usage</H1>
-<p id="connectionStatus" onclick="window.location.reload()"></p>
+<p id="connectionStatus" onclick="reconnect()"></p>
 <div class="usages">
 	<p class="value positive">
 		<span class="header">Consuming</span>
