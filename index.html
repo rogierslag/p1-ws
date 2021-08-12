@@ -16,7 +16,7 @@
 				.reduce((l, r) => l + r, 0);
 		}
 
-		const ws = new WebSocket('%WSS_URL%');
+		let ws = new WebSocket('%WSS_URL%');
 		let lastMeasurement;
 		ws.onmessage = ({data}) => {
 			const parsed = JSON.parse(data);
@@ -59,6 +59,38 @@
 				negative,
 			};
 		}
+
+		function getReadableReadyState() {
+			switch (ws.readyState) {
+				case WebSocket.CONNECTING:
+					return 'Connecting';
+				case WebSocket.OPEN:
+					return 'Connected';
+				case WebSocket.CLOSING:
+					return 'Closing';
+				case WebSocket.CLOSED:
+					return 'Closed';
+				default:
+					return `Dafuq ${ws.readyState}`;
+
+			}
+		}
+
+		function updateConnectionStatus() {
+			document.getElementById('connectionStatus').innerText = getReadableReadyState();
+		}
+
+		ws.addEventListener('open', updateConnectionStatus);
+		ws.addEventListener('message', updateConnectionStatus);
+		ws.addEventListener('error', updateConnectionStatus);
+		ws.addEventListener('close', updateConnectionStatus);
+		setInterval(updateConnectionStatus, 2500);
+
+		document.addEventListener('visibilitychange', () => {
+			if (document.visibilityState === 'visible') {
+				updateConnectionStatus();
+			}
+		});
 	</script>
 	<style>
 			body {
@@ -120,5 +152,6 @@
 		</span>
 	</p>
 </div>
+<p id="connectionStatus"></p>
 </body>
 </html>
