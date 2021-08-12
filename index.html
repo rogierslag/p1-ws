@@ -118,6 +118,7 @@
 				display: flex;
 				flex-direction: column;
 				align-items: center;
+				margin-top: 36px;
 				margin-bottom: 18px;
 				background-color: #EDEDED;
 				padding: 24px;
@@ -136,11 +137,17 @@
 			.negative {
 
 			}
+
+			#connectionStatus {
+				text-align: center;
+				font-size: 14px;
+			}
 	</style>
 </head>
 <body>
 
 <h1>Current power usage</H1>
+<p id="connectionStatus"></p>
 <div class="usages">
 	<p class="value positive">
 		<span class="header">Consuming</span>
@@ -155,6 +162,5 @@
 		</span>
 	</p>
 </div>
-<p id="connectionStatus"></p>
 </body>
 </html>
