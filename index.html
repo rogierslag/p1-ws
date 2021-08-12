@@ -88,7 +88,10 @@
 
 		document.addEventListener('visibilitychange', () => {
 			if (document.visibilityState === 'visible') {
-				updateConnectionStatus();
+				console.log('Visibility check')
+				if (ws.readyState !== WebSocket.OPEN) {
+					window.location.reload();
+				}
 			}
 		});
 	</script>
