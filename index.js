@@ -48,11 +48,12 @@ setInterval(() => {
 function startP1() {
 	const p1Options = process.env.WSS_URL ? {
 		port : '/dev/ttyUSB0',
-		baudRate : 115200,
-		parity : 'none',
-		dataBits : 8,
-		stopBits : 1
+		baudRate : process.env.BAUD_RATE ? Number(process.env.BAUD_RATE) : 115200,
+		parity : process.env.PARITY ?? 'none',
+		dataBits : process.env.DATA_BITS ? Number(process.env.DATA_BITS) : 8,
+		stopBits : process.env.STOP_BITS ? Number(process.env.STOP_BITS) : 1,
 	} : {emulator : true, emulatorOverrides : {interval : 2}};
+
 	const p1Reader = new P1Reader(p1Options);
 
 	p1Reader.on('connected', data => console.log('connected', data));
@@ -60,7 +61,6 @@ function startP1() {
 	p1Reader.on('close', data => console.warn('close', data));
 
 	p1Reader.on('reading', data => {
-		console.log(new Date().toISOString(), JSON.stringify(data));
 		wss.clients.forEach(ws => ws.send(JSON.stringify(data.electricity.instantaneous.power)));
 	});
 }
