@@ -45,22 +45,28 @@ setInterval(() => {
 	});
 }, 10000);
 
-const p1Options = process.env.WSS_URL ? {
-	port : '/dev/ttyUSB0',
-	baudRate : 115200,
-	parity : 'none',
-	dataBits : 8,
-	stopBits : 1
-} : {emulator : true, emulatorOverrides : {interval : 2}};
-const p1Reader = new P1Reader(p1Options);
+function startP1() {
+	const p1Options = process.env.WSS_URL ? {
+		port : '/dev/ttyUSB0',
+		baudRate : 115200,
+		parity : 'none',
+		dataBits : 8,
+		stopBits : 1
+	} : {emulator : true, emulatorOverrides : {interval : 2}};
+	const p1Reader = new P1Reader(p1Options);
 
-p1Reader.on('connected', data => console.log('connected', data));
-p1Reader.on('error', data => console.error('error', data));
-p1Reader.on('close', data => console.warn('close', data));
+	p1Reader.on('connected', data => console.log('connected', data));
+	p1Reader.on('error', data => console.error('error', data));
+	p1Reader.on('close', data => console.warn('close', data));
 
-p1Reader.on('reading', data => {
-	wss.clients.forEach(ws => ws.send(JSON.stringify(data.electricity.instantaneous.power)));
-});
+	p1Reader.on('reading', data => {
+		console.log(new Date().toISOString(), JSON.stringify(data));
+		wss.clients.forEach(ws => ws.send(JSON.stringify(data.electricity.instantaneous.power)));
+	});
+}
+
+// Start slightly delayed so Docker will be all ready
+setTimeout(startP1, 2500);
 
 //start our server
 server.listen(process.env.PORT || 3000, () => {
