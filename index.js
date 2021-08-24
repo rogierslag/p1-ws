@@ -6,11 +6,6 @@ const P1Reader = require('p1-reader');
 const page = fs.readFileSync('./index.html').toString()
 	.replace('%WSS_URL%', process.env.WSS_URL || 'ws://localhost:3000');
 
-// Handle all uncaught errors without crashing
-process.on('uncaughtException', error => {
-	console.error('Uncaught error occurred', error);
-});
-
 const app = express();
 app.get('/', function (req, res) {
 	console.log('Sending down our HTML');
@@ -67,6 +62,13 @@ function startP1() {
 
 // Start slightly delayed so Docker will be all ready
 setTimeout(startP1, 2500);
+
+// Handle all uncaught errors without crashing
+process.on('uncaughtException', error => {
+	console.error('Uncaught error occurred', error);
+	process.exit(1); // Exit uncleanly, and let docker restart instead
+});
+
 
 //start our server
 server.listen(process.env.PORT || 3000, () => {
