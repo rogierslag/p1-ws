@@ -41,28 +41,33 @@ setInterval(() => {
 }, 10000);
 
 function startP1() {
-	const p1Options = process.env.WSS_URL ? {
-		debug : Boolean(process.env.DEBUG),
-		port : '/dev/ttyUSB0',
-		baudRate : process.env.BAUD_RATE ? Number(process.env.BAUD_RATE) : 115200,
-		parity : process.env.PARITY ?? 'none',
-		dataBits : process.env.DATA_BITS ? Number(process.env.DATA_BITS) : 8,
-		stopBits : process.env.STOP_BITS ? Number(process.env.STOP_BITS) : 1,
-	} : {emulator : true, emulatorOverrides : {interval : 2}};
+	try {
+		const p1Options = process.env.WSS_URL ? {
+			debug : Boolean(process.env.DEBUG),
+			port : '/dev/ttyUSB0',
+			baudRate : process.env.BAUD_RATE ? Number(process.env.BAUD_RATE) : 115200,
+			parity : process.env.PARITY ?? 'none',
+			dataBits : process.env.DATA_BITS ? Number(process.env.DATA_BITS) : 8,
+			stopBits : process.env.STOP_BITS ? Number(process.env.STOP_BITS) : 1,
+		} : {emulator : true, emulatorOverrides : {interval : 2}};
 
-	const p1Reader = new P1Reader(p1Options);
+		const p1Reader = new P1Reader(p1Options);
 
-	p1Reader.on('connected', data => console.log('connected', data));
-	p1Reader.on('error', data => console.error('error', data));
-	p1Reader.on('close', data => console.warn('close', data));
+		p1Reader.on('connected', data => console.log('connected', data));
+		p1Reader.on('error', data => console.error('error', data));
+		p1Reader.on('close', data => console.warn('close', data));
 
-	p1Reader.on('reading', data => {
-		wss.clients.forEach(ws => ws.send(JSON.stringify(data.electricity.instantaneous.power)));
-		if(data.electricity.instantaneous.power.positive.L1.reading === null && data.electricity.instantaneous.power.positive.L1.unit === null) {
-			// Something is off
-			console.log(JSON.stringify(data));
-		}
-	});
+		p1Reader.on('reading', data => {
+			wss.clients.forEach(ws => ws.send(JSON.stringify(data.electricity.instantaneous.power)));
+			if (data.electricity.instantaneous.power.positive.L1.reading === null && data.electricity.instantaneous.power.positive.L1.unit === null) {
+				// Something is off
+				console.log(JSON.stringify(data));
+			}
+		});
+	} catch (e) {
+		console.error('Something threw', e);
+		process.exit(1); // Exit uncleanly, and let docker restart instead
+	}
 }
 
 // Start slightly delayed so Docker will be all ready
@@ -73,7 +78,6 @@ process.on('uncaughtException', error => {
 	console.error('Uncaught error occurred', error);
 	process.exit(1); // Exit uncleanly, and let docker restart instead
 });
-
 
 //start our server
 server.listen(process.env.PORT || 3000, () => {
