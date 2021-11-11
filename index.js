@@ -57,6 +57,10 @@ function startP1() {
 
 	p1Reader.on('reading', data => {
 		wss.clients.forEach(ws => ws.send(JSON.stringify(data.electricity.instantaneous.power)));
+		if(data.electricity.instantaneous.power.positive.L1.reading === null && data.electricity.instantaneous.power.positive.L1.unit === null) {
+			// Something is off
+			console.log(JSON.stringify(data));
+		}
 	});
 }
 
