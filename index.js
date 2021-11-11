@@ -42,6 +42,7 @@ setInterval(() => {
 
 function startP1() {
 	const p1Options = process.env.WSS_URL ? {
+		debug : Boolean(process.env.DEBUG),
 		port : '/dev/ttyUSB0',
 		baudRate : process.env.BAUD_RATE ? Number(process.env.BAUD_RATE) : 115200,
 		parity : process.env.PARITY ?? 'none',
