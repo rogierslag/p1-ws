@@ -6,4 +6,4 @@ RUN yarn install --frozen-lockfile
 ADD index.html .
 ADD index.js .
 
-CMD ["node", "index.js"]
+CMD ["node", "--unhandled-rejections=strict", "index.js"]
