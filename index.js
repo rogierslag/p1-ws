@@ -61,11 +61,12 @@ function startP1() {
 			wss.clients.forEach(ws => ws.send(JSON.stringify(data.electricity.instantaneous.power)));
 			if (data.electricity.instantaneous.power.positive.L1.reading === null && data.electricity.instantaneous.power.positive.L1.unit === null) {
 				// Something is off
-				console.log(JSON.stringify(data));
+				console.error('Not getting any values, probably incorrect connection made to meter. Restarting');
+				process.exit(2);
 			}
 		});
 	} catch (e) {
-		console.error('Something threw', e);
+		console.error('Something threw, restarting', e);
 		process.exit(1); // Exit uncleanly, and let docker restart instead
 	}
 }
