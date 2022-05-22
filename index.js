@@ -53,17 +53,28 @@ function startP1() {
 
 		const p1Reader = new P1Reader(p1Options);
 
-		p1Reader.on('connected', data => console.log('connected', data));
+		p1Reader.on('connected', () => console.log('connected'));
 		p1Reader.on('error', data => console.error('error', data));
 		p1Reader.on('close', data => console.warn('close', data));
 
 		p1Reader.on('reading', data => {
-			wss.clients.forEach(ws => ws.send(JSON.stringify(data.electricity.instantaneous.power)));
-			if (data.electricity.instantaneous.power.positive.L1.reading === null && data.electricity.instantaneous.power.positive.L1.unit === null) {
+			const hasConnectedClients = wss.clients.size;
+			const hasValueForPositiveL1 = data.electricity.instantaneous.power.positive.L1.reading !== null;
+			const hasValueForPositiveL2 = data.electricity.instantaneous.power.positive.L2.reading !== null;
+			const hasValueForPositiveL3 = data.electricity.instantaneous.power.positive.L3.reading !== null;
+			const hasValueForNegativeL1 = data.electricity.instantaneous.power.negative.L1.reading !== null;
+			const hasValueForNegativeL2 = data.electricity.instantaneous.power.negative.L2.reading !== null;
+			const hasValueForNegativeL3 = data.electricity.instantaneous.power.negative.L3.reading !== null;
+			if (!hasValueForPositiveL1 && !hasValueForPositiveL2 && !hasValueForPositiveL3 &&
+				!hasValueForNegativeL1 && !hasValueForNegativeL2 && !hasValueForNegativeL3) {
 				// Something is off
-				console.error('Not getting any values, probably incorrect connection made to meter. Restarting');
-				process.exit(2);
+				if (hasConnectedClients) {
+					// If nobody is connected let's not restart everything all the time
+					console.error('Not getting any values, probably incorrect connection made to meter. Restarting');
+					process.exit(2);
+				}
 			}
+			wss.clients.forEach(ws => ws.send(JSON.stringify(data.electricity.instantaneous.power)));
 		});
 	} catch (e) {
 		console.error('Something threw, restarting', e);
